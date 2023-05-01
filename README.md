@@ -18,8 +18,9 @@ automation mechanisms.
 based on response's API usage metadata for smoother distribution, in order to
 reduce the throttled requests.
 - **Automatic retry**: 
-- Queue (Work in progress)
-- Cache (Work in progress)
+- Queue *(Work in progress)*
+- Cache *(Work in progress)*
+- Metrics *(Work in progress)*
 
 ## Table of Contents
 - Installation
