@@ -18,7 +18,7 @@ automation mechanisms.
 based on response's API usage metadata for smoother distribution, in order to
 reduce the throttled requests.
 - **Automatic retry**: 
-- Queue *(Work in progress)*
+- **Queue**: 
 - Cache *(Work in progress)*
 - Metrics *(Work in progress)*
 
@@ -27,11 +27,13 @@ reduce the throttled requests.
 - Configuration
 - Usage
 - Tests
-- Roadmap
 - Getting help
 - Contribution
-- Credits
 
 ## Getting help
-Feel free to [open an issue](https://github.com/andvea/shopify-graphql-client/issues/new) 
-if you have any problem.
+Feel free to open an issue if you have any problem.
+
+## Contribution
+Contributions are more than welcome. Pick an existing issue or create a new one 
+and then open a pull request. Just make sure that to include a description 
+of the problem and how you are attempting to fix the issue.
