@@ -12,7 +12,8 @@ var shopifyGraphQL =
     timeout: 2,
     shopUrl: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
     shopApiKey: process.env.SHOP_API_KEY,
-    retryThrottles: false
+    retryThrottles: false,
+    maxConcurrentRequests: 50
   });
 
 describe('GraphQL Errors', function() {
@@ -104,6 +105,7 @@ describe('GraphQL Errors', function() {
         timeout: 2,
         shopUrl: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
         shopApiKey: process.env.SHOP_API_KEY,
+        maxConcurrentRequests: 5,
         retryThrottles: true
       });
 

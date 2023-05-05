@@ -1,10 +1,36 @@
 'use strict';
 import fetch from 'node-fetch';
 
+class Queue {
+  constructor() {
+    this.items = {};
+    this.frontIndex = 0;
+    this.backIndex = 0;
+  }
+  enqueue(item) {
+    this.items[this.backIndex] = item;
+    this.backIndex++;
+    return this.backIndex - 1;
+  }
+  dequeue() {
+    const item = this.items[this.frontIndex];
+    delete this.items[this.frontIndex];
+    this.frontIndex++;
+    return item;
+  }
+  peek() {
+    return this.frontIndex;
+  }
+  get printQueue() {
+    return this.items;
+  }
+}
+
 export class ShopifyGraphQL {
   constructor(configObject) {
     this.fetch = fetch;
     this.configObject = configObject;
+    this.queue = new Queue();
 
     if (!this.configObject.shopUrl) {
       throw new Error('Missing Shop URL');
@@ -17,6 +43,20 @@ export class ShopifyGraphQL {
       (this.configObject.retryThrottles!=undefined ?
         this.configObject.retryThrottles :
         true);
+
+    this.configObject.maxConcurrentRequests =
+      (this.configObject.maxConcurrentRequests!=undefined ?
+        this.configObject.maxConcurrentRequests :
+        5);
+
+    this._metrics = {
+      total: 0,
+      executions: 0,
+      processing: 0,
+      success: 0,
+      errors: 0,
+      throttles: 0,
+    };
   }
 
   _syncDelay(ms) {
@@ -24,7 +64,35 @@ export class ShopifyGraphQL {
   }
 
   request(body, retries = 0) {
+    return new Promise(async (resolve, reject) => {
+      this._metrics.total += 1;
+      if (this._metrics.processing < this.configObject.maxConcurrentRequests) {
+        return this._request(body)
+            .then((s) => resolve(s))
+            .catch((r) => reject(r));
+      } else {
+        const REQ_QUEUE_ID = this.queue.enqueue('void');
+        while (1==1) {
+          await this._syncDelay(10);
+          if (
+            this._metrics.processing <
+              this.configObject.maxConcurrentRequests &&
+            this.queue.peek() == REQ_QUEUE_ID
+          ) {
+            this.queue.dequeue();
+            return await this._request(body)
+                .then((s) => resolve(s))
+                .catch((r) => reject(r));
+          }
+        }
+      }
+    });
+  }
+
+  _request(body) {
     return new Promise((resolve, reject) => {
+      this._metrics.processing += 1;
+      this._metrics.executions += 1;
       this.fetch(this.configObject.shopUrl, {
         method: 'POST',
         headers: {
@@ -45,6 +113,8 @@ export class ShopifyGraphQL {
           // case shopifyResult.status == 429:
           default:
             // Generic error, quit
+            this._metrics.processing -= 1;
+            this._metrics.errors += 1;
             return reject(new Error('', {
               cause: {
                 status: shopifyResult.status,
@@ -63,23 +133,18 @@ export class ShopifyGraphQL {
               _isThrottled = true;
             }
           }
-          // Retry with backoff if allowed by user, otherwise quit
-          if (_isThrottled && this.configObject.retryThrottles) {
-            // How long must I wait?
-            // (actualQueryCost is null for throttled requests)
-            const _x = JSON_RESULT.extensions.cost;
-            const _backoffMs =
-              Math.max(0,
-                  (_x.requestedQueryCost -
-                    _x.throttleStatus.currentlyAvailable) /
-                  _x.throttleStatus.restoreRate) * 1000;
-            // Wait for backoff time..
-            await this._syncDelay(_backoffMs);
-            // ..and retry the request!
-            return this.request(body, retries+1)
-                .then((s) => resolve(s))
-                .catch((r) => reject(r));
+
+          if (_isThrottled) {
+            this._metrics.throttles += 1;
           } else {
+            this._metrics.errors += 1;
+          }
+
+          if (
+            !_isThrottled ||
+            (_isThrottled && !this.configObject.retryThrottles)
+          ) {
+            this._metrics.processing -= 1;
             return reject(new Error('', {
               cause: {
                 status: (_isThrottled ? 'throttled' : shopifyResult.status),
@@ -90,6 +155,21 @@ export class ShopifyGraphQL {
                   null),
               }}));
           }
+          // How long must I wait?
+          // (actualQueryCost is null for throttled requests)
+          const _x = JSON_RESULT.extensions.cost;
+          const _backoffMs =
+            Math.max(0,
+                (_x.requestedQueryCost -
+                  _x.throttleStatus.currentlyAvailable) /
+                _x.throttleStatus.restoreRate) * 1000;
+          // Wait for backoff time..
+          await this._syncDelay(_backoffMs);
+          this._metrics.processing -= 1;
+          // ..and retry the request!
+          return this._request(body)
+              .then((s) => resolve(s))
+              .catch((r) => reject(r));
         }
         // Check response's userErrors body property
         const JSON_RESULT_FIRST_KEY = Object.keys(JSON_RESULT.data)[0];
@@ -99,6 +179,8 @@ export class ShopifyGraphQL {
           JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors &&
           JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors.length > 0
         ) {
+          this._metrics.processing -= 1;
+          this._metrics.errors += 1;
           return reject(new Error('', {
             cause: {
               status: shopifyResult.status,
@@ -110,12 +192,16 @@ export class ShopifyGraphQL {
             }}));
         }
 
+        this._metrics.processing -= 1;
+        this._metrics.success += 1;
         return resolve({
           status: 'executed',
           response: JSON_RESULT,
-          retries: retries,
+          retries: 0,
         });
       }).catch((shopifyError) => {
+        this._metrics.processing -= 1;
+        this._metrics.errors += 1;
         return reject(new Error('', {cause: shopifyError}));
       });
     });
