@@ -7,7 +7,7 @@ without having to worry about all the tedious stuff like retries,
 throttling, backoff time and more. The purpose is to abstract all the best practices 
 necessary for a healthy intensive use of the Shopify GraphQL APIs, 
 so that you can take care of the rest.
-<br/><br/>
+
 Here you can find a list of the major benefits. Please note that some of them
 are still work in progress.
 - **Errors catching**: sometimes there's a mistake to fix, sometimes it's just a 
@@ -23,17 +23,33 @@ reduce the throttled requests.
 - Metrics *(Work in progress)*
 
 ## Table of Contents
-- Installation
-- Configuration
-- Usage
-- Tests
-- Getting help
-- Contribution
+- [Installation](#Installation)
+- [Usage](#Usage)
+- [Tests](#Tests)
+- [Getting help](#Getting%20help)
+- [Contribution](#Contribution)
+
+## Installation
+You can install the library via npm
+```
+npm install @andvea/shopify-graphql-client --save
+```
+
+## Usage
+
+## Tests
+Unit and integration tests are built using [mocha](https://mochajs.org/) and can be found in test folder.
+To run the test suite, first clone this repository, then run npm test:
+```
+gh repo clone andvea/shopify-graphql-client
+cd shopify-graphql-client
+npm test
+```
 
 ## Getting help
 Feel free to open an issue if you have any problem.
 
 ## Contribution
-Contributions are more than welcome. Pick an existing issue or create a new one 
+Contributions are more than welcome: pick an existing issue or create a new one 
 and then open a pull request. Just make sure that to include a description 
 of the problem and how you are attempting to fix the issue.
