@@ -1,10 +1,9 @@
 # Shopify GraphQL Client
 
-⚠️ This project is still in beta, so use it conscientiously. 
-
 This is a JavaScript module that allows you to invoke Shopify's GraphQL API with Node 
 without having to worry about all the tedious stuff like retries, 
-throttling, backoff time and more. The purpose is to abstract all the best practices 
+throttling, backoff time and more. 
+The purpose is to abstract all the [best practices](https://shopify.dev/docs/api/usage/rate-limits#avoiding-rate-limit-errors) 
 necessary for a healthy intensive use of the Shopify GraphQL APIs, 
 so that you can take care of the rest.
 
