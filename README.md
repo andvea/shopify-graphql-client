@@ -1,4 +1,7 @@
 # Shopify GraphQL Client
+
+⚠️ This project is work in progress, there is no stable release yet
+
 This is a JavaScript module that allows you to invoke Shopify's GraphQL API with Node 
 without having to worry about all the tedious stuff like retries, 
 throttling, backoff time and more. 
@@ -25,6 +28,8 @@ guarantees the order of execution.
 ## Table of Contents
 - [Installation](#Installation)
 - [Usage](#Usage)
+	- [Basic example](#Usage)
+	- [Parameters](#Parameters)
 - [Tests](#Tests)
 - [Getting help](#Getting%20help)
 - [Contribution](#Contribution)
@@ -43,8 +48,8 @@ import {ShopifyGraphQL} from 'ShopifyGraphQL.js';
 var shopifyGraphQL =
   new ShopifyGraphQL({
     shopUrl: 'https://test.myshopify.com/admin/api/2023-04/graphql.json',
-    shopApiKey: 'xxxx',
-    retryThrottles: false,
+    shopApiKey: 'shpca...b32',
+    retryThrottles: true,
     maxConcurrentRequests: 5
   });
 
