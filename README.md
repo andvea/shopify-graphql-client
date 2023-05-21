@@ -1,5 +1,4 @@
 # Shopify GraphQL Client
-
 This is a JavaScript module that allows you to invoke Shopify's GraphQL API with Node 
 without having to worry about all the tedious stuff like retries, 
 throttling, backoff time and more. 
@@ -16,8 +15,10 @@ automation mechanisms.
 - **Backoff timing**: the rate of your requests is automatically adjusted 
 based on response's API usage metadata for smoother distribution, in order to
 reduce the throttled requests.
-- **Automatic retry**: 
-- **Queue**: 
+- **Automatic retry**: you can configure the library to automatically retry 
+trotthled requests.
+- **Queue**: your requests are automatically placed in a FIFO queue which 
+guarantees the order of execution.
 - Cache *(Work in progress)*
 - Metrics *(Work in progress)*
 
@@ -35,6 +36,40 @@ npm install @andvea/shopify-graphql-client --save
 ```
 
 ## Usage
+This is a basic example of using the library:
+```javascript
+import {ShopifyGraphQL} from 'ShopifyGraphQL.js';
+
+var shopifyGraphQL =
+  new ShopifyGraphQL({
+    shopUrl: 'https://test.myshopify.com/admin/api/2023-04/graphql.json',
+    shopApiKey: 'xxxx',
+    retryThrottles: false,
+    maxConcurrentRequests: 5
+  });
+
+try {
+  var shopifyResponse = 
+    await shopifyGraphQL.request(`{ 
+      shop { 
+        id 
+      } 
+    }`);
+    
+  console.log(shopifyResponse);
+} catch(reqErr) {
+  console.log('Something went wrong!');
+  console.log(reqErr);
+}
+```
+
+### Parameters
+- `shopUrl`: full API endpoint, eg `https://test.myshopify.com/admin/api/2023-04/graphql.json`
+- `shopApiKey`: the shop's API key
+- `retryThrottles`: whether throttled requests should be automatically retried
+- `maxConcurrentRequests`: how many requests can be sent at the same time. 
+This concurrency capacity refers to how many requests can be sent 
+even if shopify hasn't responded yet
 
 ## Tests
 Unit and integration tests are built using [mocha](https://mochajs.org/) and can be found in test folder.
@@ -44,7 +79,6 @@ gh repo clone andvea/shopify-graphql-client
 cd shopify-graphql-client
 npm test
 ```
-
 ## Getting help
 Feel free to open an issue if you have any problem.
 
