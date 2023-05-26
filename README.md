@@ -43,7 +43,7 @@ npm install @andvea/shopify-graphql-client --save
 ## Usage
 This is a basic example of using the library:
 ```javascript
-import {ShopifyGraphQL} from 'ShopifyGraphQL.js';
+import {ShopifyGraphQL} from '@andvea/shopify-graphql-client';
 
 var shopifyGraphQL =
   new ShopifyGraphQL({
@@ -74,16 +74,25 @@ try {
 - `retryThrottles`: whether throttled requests should be automatically retried
 - `maxConcurrentRequests`: how many requests can be sent at the same time. 
 This concurrency capacity refers to how many requests can be sent 
-even if shopify hasn't responded yet
+even if Shopify hasn't responded yet
 
 ## Tests
-Unit and integration tests are built using [mocha](https://mochajs.org/) and can be found in test folder.
-To run the test suite, first clone this repository, then run npm test:
-```
-gh repo clone andvea/shopify-graphql-client
-cd shopify-graphql-client
-npm test
-```
+Unit and integration tests are built using [mocha](https://mochajs.org/) and 
+can be found in test folder.<br/>To run the test suite, please follow these steps:
+- get a valid [api key](https://shopify.dev/docs/api/admin-graphql#authentication) 
+for your shop
+- clone this repository
+	```
+	gh repo clone andvea/shopify-graphql-client
+	cd shopify-graphql-client
+	```
+- create the env file `.env.test` in the main folder with these parameters:
+	```
+	SHOP_MYSHOPIFY_DOMAIN = test.myshopify.com (your myshopify domain)
+	SHOP_API_KEY = shpca...b32 (your api key)
+	```
+- run ```npm test```
+
 ## Getting help
 Feel free to open an issue if you have any problem.
 
