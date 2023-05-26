@@ -2,7 +2,12 @@
   "name": "@andvea/shopify-graphql-client",
   "version": "1.0.0",
   "description": "",
-  "main": "",
+  "main": "ShopifyGraphQL.js",
+  "files": [
+    "ShopifyGraphQL.js",
+    "package.json",
+    "LICENSE"
+  ],
   "type": "module",
   "scripts": {
     "test": "npm install;npx eslint shopifyGraphQL.js;mocha"
