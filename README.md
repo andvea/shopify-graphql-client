@@ -33,6 +33,7 @@ guarantees the order of execution.
 - [Tests](#Tests)
 - [Getting help](#Getting%20help)
 - [Contribution](#Contribution)
+- [Credits](#Credits)
 
 ## Installation
 You can install the library via npm
@@ -79,9 +80,9 @@ even if Shopify hasn't responded yet
 ## Tests
 Unit and integration tests are built using [mocha](https://mochajs.org/) and 
 can be found in test folder.<br/>To run the test suite, please follow these steps:
-- get a valid [api key](https://shopify.dev/docs/api/admin-graphql#authentication) 
+- get a valid [API key](https://shopify.dev/docs/api/admin-graphql#authentication) 
 for your shop
-- clone this repository
+- clone this repository:
 	```
 	gh repo clone andvea/shopify-graphql-client
 	cd shopify-graphql-client
@@ -98,5 +99,11 @@ Feel free to open an issue if you have any problem.
 
 ## Contribution
 Contributions are more than welcome: pick an existing issue or create a new one 
-and then open a pull request. Just make sure that to include a description 
+and then open a pull request. Just make sure you include a description 
 of the problem and how you are attempting to fix the issue.
+
+## Credits
+My thanks go to my friends at [Uppa](https://www.uppa.it/).<br/>
+Aiming to build a better world is an attitude I learnt from them:<br/>
+_Chiara B., Chiara R., Claudia L.G., Daniela M., Francesca G., Giulia B., 
+Lidia D., Lorenzo B., Lorenzo C., Pierpaolo D.M., Sergio C.N., Virginia V._
