@@ -10,8 +10,8 @@ dotenv.config({
 var shopifyGraphQL =
   new ShopifyGraphQL({
     timeout: 2,
-    shopUrl: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
-    shopApiKey: process.env.SHOP_API_KEY,
+    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+    apiKey: process.env.SHOP_API_KEY,
     retryThrottles: false,
     maxConcurrentRequests: 50
   });
@@ -103,8 +103,8 @@ describe('GraphQL Errors', function() {
     shopifyGraphQL =
       new ShopifyGraphQL({
         timeout: 2,
-        shopUrl: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
-        shopApiKey: process.env.SHOP_API_KEY,
+        apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+        apiKey: process.env.SHOP_API_KEY,
         maxConcurrentRequests: 5,
         retryThrottles: true
       });

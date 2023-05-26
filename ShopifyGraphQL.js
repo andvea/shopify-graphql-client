@@ -32,10 +32,10 @@ export class ShopifyGraphQL {
     this.configObject = configObject;
     this.queue = new Queue();
 
-    if (!this.configObject.shopUrl) {
+    if (!this.configObject.apiEndpoint) {
       throw new Error('Missing Shop URL');
     }
-    if (!this.configObject.shopApiKey) {
+    if (!this.configObject.apiKey) {
       throw new Error('Missing Shop Api Key');
     }
 
@@ -93,12 +93,12 @@ export class ShopifyGraphQL {
     return new Promise((resolve, reject) => {
       this._metrics.processing += 1;
       this._metrics.executions += 1;
-      this.fetch(this.configObject.shopUrl, {
+      this.fetch(this.configObject.apiEndpoint, {
         method: 'POST',
         headers: {
           'Accept': 'text/html',
           'Content-Type': 'application/graphql',
-          'X-Shopify-Access-Token': this.configObject.shopApiKey,
+          'X-Shopify-Access-Token': this.configObject.apiKey,
         },
         body: body,
       }).then(async (shopifyResult) => {

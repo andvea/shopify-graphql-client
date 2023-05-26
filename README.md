@@ -47,8 +47,8 @@ import {ShopifyGraphQL} from '@andvea/shopify-graphql-client';
 
 var shopifyGraphQL =
   new ShopifyGraphQL({
-    shopUrl: 'https://test.myshopify.com/admin/api/2023-04/graphql.json',
-    shopApiKey: 'shpca...b32',
+    apiEndpoint: 'https://test.myshopify.com/admin/api/2023-04/graphql.json',
+    apiKey: 'shpca...b32',
     retryThrottles: true,
     maxConcurrentRequests: 5
   });
@@ -69,8 +69,8 @@ try {
 ```
 
 ### Parameters
-- `shopUrl`: full API endpoint, eg `https://test.myshopify.com/admin/api/2023-04/graphql.json`
-- `shopApiKey`: the shop's API key
+- `apiEndpoint`: full API endpoint, eg `https://test.myshopify.com/admin/api/2023-04/graphql.json`
+- `apiKey`: the shop's API key
 - `retryThrottles`: whether throttled requests should be automatically retried
 - `maxConcurrentRequests`: how many requests can be sent at the same time. 
 This concurrency capacity refers to how many requests can be sent 
