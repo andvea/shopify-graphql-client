@@ -1,7 +1,5 @@
 # Shopify GraphQL Client
 
-⚠️ This project is work in progress, there is no stable release yet
-
 This is a JavaScript module that allows you to invoke Shopify's GraphQL API with Node 
 without having to worry about all the tedious stuff like retries, 
 throttling, backoff time and more. 
