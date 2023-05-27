@@ -3,26 +3,19 @@ import fetch from 'node-fetch';
 
 class Queue {
   constructor() {
-    this.items = {};
     this.frontIndex = 0;
     this.backIndex = 0;
   }
   enqueue(item) {
-    this.items[this.backIndex] = item;
     this.backIndex++;
     return this.backIndex - 1;
   }
   dequeue() {
-    const item = this.items[this.frontIndex];
-    delete this.items[this.frontIndex];
     this.frontIndex++;
-    return item;
+    return true;
   }
   peek() {
     return this.frontIndex;
-  }
-  get printQueue() {
-    return this.items;
   }
 }
 
@@ -67,11 +60,11 @@ export class ShopifyGraphQL {
     return new Promise(async (resolve, reject) => {
       this._metrics.total += 1;
       if (this._metrics.processing < this.configObject.maxConcurrentRequests) {
-        return this._request(body)
+        return this._executeRequest(body)
             .then((s) => resolve(s))
             .catch((r) => reject(r));
       } else {
-        const REQ_QUEUE_ID = this.queue.enqueue('void');
+        const REQ_QUEUE_ID = this.queue.enqueue();
         while (1==1) {
           await this._syncDelay(10);
           if (
@@ -80,7 +73,7 @@ export class ShopifyGraphQL {
             this.queue.peek() == REQ_QUEUE_ID
           ) {
             this.queue.dequeue();
-            return await this._request(body)
+            return await this._executeRequest(body)
                 .then((s) => resolve(s))
                 .catch((r) => reject(r));
           }
@@ -89,7 +82,7 @@ export class ShopifyGraphQL {
     });
   }
 
-  _request(body) {
+  _executeRequest(body) {
     return new Promise((resolve, reject) => {
       this._metrics.processing += 1;
       this._metrics.executions += 1;
@@ -127,27 +120,27 @@ export class ShopifyGraphQL {
         }
         // Check response's errors body property
         if (JSON_RESULT.errors!=undefined) {
-          let _isThrottled = false;
+          let isThrottled = false;
           for (let i=0; i<JSON_RESULT.errors.length; i++) {
             if (JSON_RESULT.errors[i].extensions.code == 'THROTTLED') {
-              _isThrottled = true;
+              isThrottled = true;
             }
           }
 
-          if (_isThrottled) {
+          if (isThrottled) {
             this._metrics.throttles += 1;
           } else {
             this._metrics.errors += 1;
           }
 
           if (
-            !_isThrottled ||
-            (_isThrottled && !this.configObject.retryThrottles)
+            !isThrottled ||
+            (isThrottled && !this.configObject.retryThrottles)
           ) {
             this._metrics.processing -= 1;
             return reject(new Error('', {
               cause: {
-                status: (_isThrottled ? 'throttled' : shopifyResult.status),
+                status: (isThrottled ? 'throttled' : shopifyResult.status),
                 errors: JSON_RESULT.errors,
                 userErrors: false,
                 cost: (JSON_RESULT.extensions ?
@@ -157,17 +150,17 @@ export class ShopifyGraphQL {
           }
           // How long must I wait?
           // (actualQueryCost is null for throttled requests)
-          const _x = JSON_RESULT.extensions.cost;
-          const _backoffMs =
+          const QUERY_COST = JSON_RESULT.extensions.cost;
+          const BACKOFF_MS =
             Math.max(0,
-                (_x.requestedQueryCost -
-                  _x.throttleStatus.currentlyAvailable) /
-                _x.throttleStatus.restoreRate) * 1000;
+                (QUERY_COST.requestedQueryCost -
+                  QUERY_COST.throttleStatus.currentlyAvailable) /
+                QUERY_COST.throttleStatus.restoreRate) * 1000;
           // Wait for backoff time..
-          await this._syncDelay(_backoffMs);
+          await this._syncDelay(BACKOFF_MS);
           this._metrics.processing -= 1;
           // ..and retry the request!
-          return this._request(body)
+          return this._executeRequest(body)
               .then((s) => resolve(s))
               .catch((r) => reject(r));
         }

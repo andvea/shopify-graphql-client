@@ -24,13 +24,11 @@ describe('GraphQL Errors', function() {
       shop { 
         id 
       } 
-    }`, false, false)
-      .then((v) => {
-        done();
-      })
-      .catch((reqErr) => {
-        done(new Error(reqErr));
-      })
+    }`).then((v) => {
+      done();
+    }).catch((reqErr) => {
+      done(new Error(reqErr));
+    });
   });
 
   it('Reject if response has errors', (done) => {
@@ -38,17 +36,15 @@ describe('GraphQL Errors', function() {
       _customer(id: "gid://shopify/Customer/xxx") { 
         createdAt 
       } 
-    }`, false, false)
-      .then((v) => {
-        done(new Error('Malformed body passed'));
-      })
-      .catch((err) => {
-        if (!err.cause.userErrors && err.cause.errors) {
-          done();
-        } else {
-          done(new Error('Errors param is not defined'));
-        }
-      })
+    }`).then((v) => {
+      done(new Error('Malformed body passed'));
+    }).catch((err) => {
+      if (!err.cause.userErrors && err.cause.errors) {
+        done();
+      } else {
+        done(new Error('Errors param is not defined'));
+      }
+    });
   });
 
   it('Reject if response has userErrors', (done) => {
@@ -59,17 +55,15 @@ describe('GraphQL Errors', function() {
           message 
         } 
       } 
-    }`, false, false)
-      .then((v) => {
-        done(new Error('Malformed mutation input passed'));
-      })
-      .catch((err) => {
-        if (err.cause.userErrors && !err.cause.errors) {
-          done();
-        } else {
-          done(new Error('userErrors param is not defined'));
-        }
-      })
+    }`).then((v) => {
+      done(new Error('Malformed mutation input passed'));
+    }).catch((err) => {
+      if (err.cause.userErrors && !err.cause.errors) {
+        done();
+      } else {
+        done(new Error('userErrors param is not defined'));
+      }
+    });
   });
 
   it('At least one request throttled', (done) => {
@@ -85,7 +79,7 @@ describe('GraphQL Errors', function() {
             privateMetafields(first:10){ edges{ node{ id } } } 
             metafields(first:10){ edges{ node{ id } } } 
           } 
-        }`, false, false));
+        }`));
     }
 
     Promise.all(throttlingPromises).then((success) => {
@@ -121,7 +115,7 @@ describe('GraphQL Errors', function() {
             privateMetafields(first:10){ edges{ node{ id } } } 
             metafields(first:10){ edges{ node{ id } } } 
           } 
-        }`, false, false));
+        }`));
     }
 
     Promise.all(throttlingPromises).then((success) => {
