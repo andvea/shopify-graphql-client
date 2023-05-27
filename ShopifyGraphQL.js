@@ -187,11 +187,7 @@ export class ShopifyGraphQL {
 
         this._metrics.processing -= 1;
         this._metrics.success += 1;
-        return resolve({
-          status: 'executed',
-          response: JSON_RESULT,
-          retries: 0,
-        });
+        return resolve(JSON_RESULT);
       }).catch((shopifyError) => {
         this._metrics.processing -= 1;
         this._metrics.errors += 1;

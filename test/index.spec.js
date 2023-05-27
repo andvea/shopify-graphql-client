@@ -121,7 +121,7 @@ describe('GraphQL Errors', function() {
     Promise.all(throttlingPromises).then((success) => {
       var _check = true;
       for (var i=0; i<success.length; i++) {
-        if (success[i].response.data.shop.myshopifyDomain!=process.env.SHOP_MYSHOPIFY_DOMAIN) {
+        if (success[i].data.shop.myshopifyDomain!=process.env.SHOP_MYSHOPIFY_DOMAIN) {
           _check = false;
         }
       }
