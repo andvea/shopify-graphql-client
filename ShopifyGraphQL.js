@@ -1,5 +1,6 @@
 'use strict';
-import fetch from 'node-fetch';
+import http2 from 'node:http2';
+import {URL} from 'node:url';
 
 class Queue {
   constructor() {
@@ -21,7 +22,6 @@ class Queue {
 
 export class ShopifyGraphQL {
   constructor(configObject) {
-    this.fetch = fetch;
     this.configObject = configObject;
     this.queue = new Queue();
 
@@ -86,31 +86,61 @@ export class ShopifyGraphQL {
     return new Promise((resolve, reject) => {
       this._metrics.processing += 1;
       this._metrics.executions += 1;
-      this.fetch(this.configObject.apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Accept': 'text/html',
-          'Content-Type': 'application/graphql',
-          'X-Shopify-Access-Token': this.configObject.apiKey,
-        },
-        body: body,
-      }).then(async (shopifyResult) => {
+      this.configObject.apiEndpoint = new URL(this.configObject.apiEndpoint);
+
+      const HTTP_CLIENT =
+        http2.connect('https://'+this.configObject.apiEndpoint.hostname);
+
+      HTTP_CLIENT.on('error', (httpClientError) => {
+        this._metrics.processing -= 1;
+        this._metrics.errors += 1;
+        HTTP_CLIENT.close();
+        return reject(new Error('', {cause: httpClientError}));
+      });
+
+      const HTTP_STREAM = HTTP_CLIENT.request({
+        ':path': this.configObject.apiEndpoint.pathname,
+        ':method': 'POST',
+        'Accept': 'text/html',
+        'Content-Type': 'application/graphql',
+        'X-Shopify-Access-Token': this.configObject.apiKey,
+      });
+
+      HTTP_STREAM.write(body, 'utf8');
+      // Tell the server that all of requests' headers and body have been sent
+      HTTP_STREAM.end();
+
+      const HTTP_STREAM_RES = {
+        status: undefined,
+        body: '',
+      };
+
+      HTTP_STREAM.on('response', (headers, flags) => {
+        HTTP_STREAM_RES.status = headers[':status'];
+      });
+
+      HTTP_STREAM.on('data', (chunk) => {
+        HTTP_STREAM_RES.body += chunk;
+      });
+
+      HTTP_STREAM.on('end', async () => {
+        HTTP_CLIENT.close();
         // Parse response's body
-        const JSON_RESULT = await shopifyResult.json();
+        const JSON_RESULT = JSON.parse(HTTP_STREAM_RES.body);
         // Check response's HTTP status code
         switch (true) {
-          case shopifyResult.status >= 200 && shopifyResult.status <= 299:
+          case HTTP_STREAM_RES.status >= 200 && HTTP_STREAM_RES.status <= 299:
             // Ok, go ahead
             break;
-          // case shopifyResult.status >= 500 && shopifyResult.status <= 599:
-          // case shopifyResult.status == 429:
+          // case HTTP_STREAM_RES.status >= 500 && HTTP_STREAM_RES.status <= 599:
+          // case HTTP_STREAM_RES.status == 429:
           default:
             // Generic error, quit
             this._metrics.processing -= 1;
             this._metrics.errors += 1;
             return reject(new Error('', {
               cause: {
-                status: shopifyResult.status,
+                status: HTTP_STREAM_RES.status,
                 errors: JSON_RESULT.errors,
                 userErrors: false,
                 cost: (JSON_RESULT.extensions ?
@@ -140,7 +170,7 @@ export class ShopifyGraphQL {
             this._metrics.processing -= 1;
             return reject(new Error('', {
               cause: {
-                status: (isThrottled ? 'throttled' : shopifyResult.status),
+                status: (isThrottled ? 'throttled' : HTTP_STREAM_RES.status),
                 errors: JSON_RESULT.errors,
                 userErrors: false,
                 cost: (JSON_RESULT.extensions ?
@@ -176,7 +206,7 @@ export class ShopifyGraphQL {
           this._metrics.errors += 1;
           return reject(new Error('', {
             cause: {
-              status: shopifyResult.status,
+              status: HTTP_STREAM_RES.status,
               errors: false,
               userErrors: JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors,
               cost: (JSON_RESULT.extensions ?
@@ -188,10 +218,6 @@ export class ShopifyGraphQL {
         this._metrics.processing -= 1;
         this._metrics.success += 1;
         return resolve(JSON_RESULT);
-      }).catch((shopifyError) => {
-        this._metrics.processing -= 1;
-        this._metrics.errors += 1;
-        return reject(new Error('', {cause: shopifyError}));
       });
     });
   }
