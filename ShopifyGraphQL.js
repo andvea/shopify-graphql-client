@@ -24,6 +24,8 @@ export class ShopifyGraphQL {
   constructor(configObject) {
     this.configObject = configObject;
     this.queue = new Queue();
+    this.userAgent = 'shopify-graphql-client/1.1.0 '+
+        '(+https://github.com/andvea/shopify-graphql-client)';
 
     if (!this.configObject.apiEndpoint) {
       throw new Error('Missing Shop URL');
@@ -103,6 +105,7 @@ export class ShopifyGraphQL {
         ':method': 'POST',
         'Accept': 'text/html',
         'Content-Type': 'application/graphql',
+        'User-Agent': this.userAgent,
         'X-Shopify-Access-Token': this.configObject.apiKey,
       });
 

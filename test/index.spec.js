@@ -19,6 +19,18 @@ var shopifyGraphQL =
 describe('GraphQL Errors', function() {
   this.timeout(15000);
 
+  it('User-Agent version equal to package.json', (done) => {
+    const regex = 
+      /\((?<info>.*?)\)(\s|$)|(?<name>.*?)\/(?<version>.*?)(\s|$)/gm;
+    var userAgentVersion = regex.exec(shopifyGraphQL.userAgent).groups.version;
+
+    if (process.env.npm_package_version==userAgentVersion) {
+      done();
+    } else {
+      done(new Error('Wrong User-Agent version'));
+    }
+  });
+
   it('Succesfull request', (done) => {
     shopifyGraphQL.request(`{ 
       shop { 
