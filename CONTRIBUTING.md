@@ -2,7 +2,7 @@
 Thank you for investing your time in contributing to our project!<br/>
 <!-- Read our [Code of Conduct](./CODE_OF_CONDUCT.md) to keep our community approachable and respectable. -->
 In this guide you will get an overview of the contribution workflow from opening an issue, creating a PR, reviewing, and merging the PR.<br/>
-Use the table of contents icon on the top left corner of this document to get to a specific section of this guide quickly.
+Use the table of contents icon on the top right corner of this document to get to a specific section of this guide quickly.
 
 ## New contributor guide
 To get an overview of the project, read the [Readme](README.md).<br/>
