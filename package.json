@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/andvea/shopify-graphql-client.git"
   },
-  "author": "",
+  "author": "Andrea Polverino (https://github.com/andvea)",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/andvea/shopify-graphql-client/issues"
