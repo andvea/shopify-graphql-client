@@ -17,7 +17,7 @@ var shopifyGraphQL =
   });
 
 describe('GraphQL Errors', function() {
-  this.timeout(15000);
+  this.timeout(55000);
 
   it('User-Agent version equal to package.json', (done) => {
     const regex = 

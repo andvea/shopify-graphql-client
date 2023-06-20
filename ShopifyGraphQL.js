@@ -24,12 +24,16 @@ export class ShopifyGraphQL {
   constructor(configObject) {
     this.configObject = configObject;
     this.queue = new Queue();
+    this._http2_session = null;
     this.userAgent = 'shopify-graphql-client/1.1.0 '+
         '(+https://github.com/andvea/shopify-graphql-client)';
 
     if (!this.configObject.apiEndpoint) {
       throw new Error('Missing Shop URL');
+    } else {
+      this.configObject.apiEndpoint = new URL(this.configObject.apiEndpoint);
     }
+
     if (!this.configObject.apiKey) {
       throw new Error('Missing Shop Api Key');
     }
@@ -46,7 +50,6 @@ export class ShopifyGraphQL {
 
     this._metrics = {
       total: 0,
-      executions: 0,
       processing: 0,
       success: 0,
       errors: 0,
@@ -64,7 +67,13 @@ export class ShopifyGraphQL {
       if (this._metrics.processing < this.configObject.maxConcurrentRequests) {
         return this._executeRequest(body)
             .then((s) => resolve(s))
-            .catch((r) => reject(r));
+            .catch((r) => reject(r))
+            .finally((f) => {
+              if (this._metrics.processing == 0) {
+                this._http2_session.close();
+                this._http2_session = null;
+              }
+            });
       } else {
         const REQ_QUEUE_ID = this.queue.enqueue();
         while (1==1) {
@@ -77,7 +86,13 @@ export class ShopifyGraphQL {
             this.queue.dequeue();
             return await this._executeRequest(body)
                 .then((s) => resolve(s))
-                .catch((r) => reject(r));
+                .catch((r) => reject(r))
+                .finally((f) => {
+                  if (this._metrics.processing == 0) {
+                    this._http2_session.close();
+                    this._http2_session = null;
+                  }
+                });
           }
         }
       }
@@ -87,20 +102,13 @@ export class ShopifyGraphQL {
   _executeRequest(body) {
     return new Promise((resolve, reject) => {
       this._metrics.processing += 1;
-      this._metrics.executions += 1;
-      this.configObject.apiEndpoint = new URL(this.configObject.apiEndpoint);
 
-      const HTTP_CLIENT =
-        http2.connect('https://'+this.configObject.apiEndpoint.hostname);
+      if (!this._http2_session) {
+        this._http2_session =
+          http2.connect('https://'+this.configObject.apiEndpoint.hostname);
+      }
 
-      HTTP_CLIENT.on('error', (httpClientError) => {
-        this._metrics.processing -= 1;
-        this._metrics.errors += 1;
-        HTTP_CLIENT.close();
-        return reject(new Error('', {cause: httpClientError}));
-      });
-
-      const HTTP_STREAM = HTTP_CLIENT.request({
+      const HTTP_STREAM = this._http2_session.request({
         ':path': this.configObject.apiEndpoint.pathname,
         ':method': 'POST',
         'Accept': 'text/html',
@@ -127,7 +135,6 @@ export class ShopifyGraphQL {
       });
 
       HTTP_STREAM.on('end', async () => {
-        HTTP_CLIENT.close();
         // Parse response's body
         const JSON_RESULT = JSON.parse(HTTP_STREAM_RES.body);
         // Check response's HTTP status code
