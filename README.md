@@ -4,7 +4,7 @@ This is a JavaScript module that allows you to invoke Shopify's GraphQL API with
 without having to worry about all the tedious stuff like retries, 
 throttling, backoff time and more. 
 The purpose is to abstract all the [best practices](https://shopify.dev/docs/api/usage/rate-limits#avoiding-rate-limit-errors) 
-necessary for a healthy intensive use of the Shopify GraphQL APIs, 
+necessary for a healthy intensive use of the Shopify GraphQL API, 
 so that you can take care of the rest.
 
 Here you can find a list of the major benefits. Please note that some of them
@@ -20,6 +20,9 @@ reduce the throttled requests.
 trotthled requests.
 - **Queue**: your requests are automatically placed in a FIFO queue which 
 guarantees the order of execution.
+- **HTTP/2 support**: all the requests are made via HTTP/2 and the session 
+remains active as long as the queue is not empty. It's a mechanism that 
+allows you to save time, especially with many requests in the queue.
 - Cache *(Work in progress)*
 - Metrics *(Work in progress)*
 
