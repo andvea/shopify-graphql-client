@@ -5,7 +5,7 @@ In this guide you will get an overview of the contribution workflow from opening
 Use the table of contents icon on the top left corner of this document to get to a specific section of this guide quickly.
 
 ## New contributor guide
-To get an overview of the project, read the [README](README.md).<br/>
+To get an overview of the project, read the [Readme](README.md).<br/>
 Here are some resources to help you get started with open source contributions:
 
 - [Finding ways to contribute to open source on GitHub](https://docs.github.com/en/get-started/exploring-projects-on-github/finding-ways-to-contribute-to-open-source-on-github)
@@ -25,14 +25,32 @@ Scan through our [existing issues](https://github.com/andvea/shopify-graphql-cli
 1. [Fork the repository](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo#fork-an-example-repository) so that you can make your changes without affecting the original project until you're ready to merge them.
 2. Create a working branch and start with your changes!
 
-## Commit your update
-Commit the changes once you are happy with them. 
+## Tests
 Don't forget to run `npm test` often and make sure it succeed, because 
 your PR will be merged only if all the automatic tests are successful. These include:
 - static code analysis via [eslint](https://eslint.org/)
 - unit and integration tests via [mocha](https://mochajs.org/)
 
 If you make a major change or fix a bug, add a related test.
+
+Unit and integration tests are built using [mocha](https://mochajs.org/) and 
+can be found in test folder.<br/>To run the test suite, please follow these steps:
+- get a valid [API key](https://shopify.dev/docs/api/admin-graphql#authentication) 
+for your shop
+- clone this repository:
+  ```
+  gh repo clone andvea/shopify-graphql-client
+  cd shopify-graphql-client
+  ```
+- create the env file `.env.test` in the main folder with these parameters:
+  ```
+  SHOP_MYSHOPIFY_DOMAIN = test.myshopify.com (your myshopify domain)
+  SHOP_API_KEY = shpca...b32 (your api key)
+  ```
+- run ```npm test```
+
+## Commit your update
+Commit the changes once you are happy with them and all the automatic tests are successful.
 
 ## Pull Request
 When you're finished with the changes, create a pull request, also known as a PR.
