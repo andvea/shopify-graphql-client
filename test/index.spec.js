@@ -43,6 +43,14 @@ describe('GraphQL Errors', function() {
     });
   });
 
+  it('Reject if response is not between 200 and 299', (done) => {
+    shopifyGraphQL.request(``).then((v) => {
+      done(new Error('Reponse with wrong status code passed'));
+    }).catch((reqErr) => {
+      done();
+    });
+  });
+
   it('Reject if response has errors', (done) => {
     shopifyGraphQL.request(`{ 
       _customer(id: "gid://shopify/Customer/xxx") { 

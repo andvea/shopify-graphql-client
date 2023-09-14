@@ -138,31 +138,27 @@ export class ShopifyGraphQL {
         // Parse response's body
         const JSON_RESULT = JSON.parse(HTTP_STREAM_RES.body);
         // Check response's HTTP status code
-        switch (true) {
-          case HTTP_STREAM_RES.status >= 200 && HTTP_STREAM_RES.status <= 299:
-            // Ok, go ahead
-            break;
-          // case HTTP_STREAM_RES.status >= 500 && HTTP_STREAM_RES.status <= 599:
-          // case HTTP_STREAM_RES.status == 429:
-          default:
-            // Generic error, quit
-            this._metrics.processing -= 1;
-            this._metrics.errors += 1;
-            return reject(new Error('', {
-              cause: {
-                status: HTTP_STREAM_RES.status,
-                errors: JSON_RESULT.errors,
-                userErrors: false,
-                cost: (JSON_RESULT.extensions ?
-                  JSON_RESULT.extensions.cost :
-                  null)}}));
-            break;
+        if (HTTP_STREAM_RES.status < 200 || HTTP_STREAM_RES.status > 299) {
+          this._metrics.processing -= 1;
+          this._metrics.errors += 1;
+          return reject(new Error('Shopify returned '+HTTP_STREAM_RES.status+
+            ' as response code. Please see https://shopify.dev/docs/api/usage/response-codes', {
+            cause: {
+              status: HTTP_STREAM_RES.status,
+              errors: JSON_RESULT.errors,
+              userErrors: false,
+              cost: (JSON_RESULT.extensions ?
+                JSON_RESULT.extensions.cost :
+                null)}}));
         }
         // Check response's errors body property
         if (JSON_RESULT.errors!=undefined) {
           let isThrottled = false;
           for (let i=0; i<JSON_RESULT.errors.length; i++) {
-            if (JSON_RESULT.errors[i].extensions.code == 'THROTTLED') {
+            if (
+              JSON_RESULT.errors[i].extensions &&
+              JSON_RESULT.errors[i].extensions.code &&
+              JSON_RESULT.errors[i].extensions.code == 'THROTTLED') {
               isThrottled = true;
             }
           }
@@ -178,7 +174,7 @@ export class ShopifyGraphQL {
             (isThrottled && !this.configObject.retryThrottles)
           ) {
             this._metrics.processing -= 1;
-            return reject(new Error('', {
+            return reject(new Error(JSON_RESULT.errors[0].message, {
               cause: {
                 status: (isThrottled ? 'throttled' : HTTP_STREAM_RES.status),
                 errors: JSON_RESULT.errors,
@@ -214,7 +210,7 @@ export class ShopifyGraphQL {
         ) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
-          return reject(new Error('', {
+          return reject(new Error(JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors[0].message, {
             cause: {
               status: HTTP_STREAM_RES.status,
               errors: false,
