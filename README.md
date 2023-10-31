@@ -23,6 +23,7 @@ guarantees the order of execution.
 - **HTTP/2 support**: all the requests are made via HTTP/2 and the session 
 remains active as long as the queue is not empty. It's a mechanism that 
 allows you to save time, especially with many requests in the queue.
+- **No dependencies**: a lightweight solution that minimizes potential conflicts
 - Cache *(Work in progress)*
 - Metrics *(Work in progress)*
 
