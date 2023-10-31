@@ -17,7 +17,19 @@ var shopifyGraphQL =
   });
 
 describe('GraphQL Errors', function() {
-  this.timeout(15000);
+  this.timeout(55000);
+
+  it('User-Agent version equal to package.json', (done) => {
+    const regex = 
+      /\((?<info>.*?)\)(\s|$)|(?<name>.*?)\/(?<version>.*?)(\s|$)/gm;
+    var userAgentVersion = regex.exec(shopifyGraphQL.userAgent).groups.version;
+
+    if (process.env.npm_package_version==userAgentVersion) {
+      done();
+    } else {
+      done(new Error('Wrong User-Agent version'));
+    }
+  });
 
   it('Succesfull request', (done) => {
     shopifyGraphQL.request(`{ 
@@ -28,6 +40,14 @@ describe('GraphQL Errors', function() {
       done();
     }).catch((reqErr) => {
       done(new Error(reqErr));
+    });
+  });
+
+  it('Reject if response is not between 200 and 299', (done) => {
+    shopifyGraphQL.request(``).then((v) => {
+      done(new Error('Reponse with wrong status code passed'));
+    }).catch((reqErr) => {
+      done();
     });
   });
 

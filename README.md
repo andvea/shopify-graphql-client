@@ -4,7 +4,7 @@ This is a JavaScript module that allows you to invoke Shopify's GraphQL API with
 without having to worry about all the tedious stuff like retries, 
 throttling, backoff time and more. 
 The purpose is to abstract all the [best practices](https://shopify.dev/docs/api/usage/rate-limits#avoiding-rate-limit-errors) 
-necessary for a healthy intensive use of the Shopify GraphQL APIs, 
+necessary for a healthy intensive use of the Shopify GraphQL API, 
 so that you can take care of the rest.
 
 Here you can find a list of the major benefits. Please note that some of them
@@ -20,14 +20,18 @@ reduce the throttled requests.
 trotthled requests.
 - **Queue**: your requests are automatically placed in a FIFO queue which 
 guarantees the order of execution.
+- **HTTP/2 support**: all the requests are made via HTTP/2 and the session 
+remains active as long as the queue is not empty. It's a mechanism that 
+allows you to save time, especially with many requests in the queue.
+- **No dependencies**: a lightweight solution that minimizes potential conflicts
 - Cache *(Work in progress)*
 - Metrics *(Work in progress)*
 
 ## Table of Contents
 - [Installation](#Installation)
 - [Usage](#Usage)
-	- [Basic example](#Usage)
-	- [Parameters](#Parameters)
+  - [Basic example](#Usage)
+  - [Parameters](#Parameters)
 - [Tests](#Tests)
 - [Getting help](#Getting%20help)
 - [Contribution](#Contribution)
@@ -76,29 +80,13 @@ This concurrency capacity refers to how many requests can be sent
 even if Shopify hasn't responded yet
 
 ## Tests
-Unit and integration tests are built using [mocha](https://mochajs.org/) and 
-can be found in test folder.<br/>To run the test suite, please follow these steps:
-- get a valid [API key](https://shopify.dev/docs/api/admin-graphql#authentication) 
-for your shop
-- clone this repository:
-	```
-	gh repo clone andvea/shopify-graphql-client
-	cd shopify-graphql-client
-	```
-- create the env file `.env.test` in the main folder with these parameters:
-	```
-	SHOP_MYSHOPIFY_DOMAIN = test.myshopify.com (your myshopify domain)
-	SHOP_API_KEY = shpca...b32 (your api key)
-	```
-- run ```npm test```
+To get an overview of tests, read the [related section in the Contributing guide](CONTRIBUTING.md#tests).
 
 ## Getting help
-Feel free to open an issue if you have any problem.
+Feel free to open [an issue](https://github.com/andvea/shopify-graphql-client/issues/new) if you have any problem.
 
 ## Contribution
-Contributions are more than welcome: pick an existing issue or create a new one 
-and then open a pull request. Just make sure you include a description 
-of the problem and how you are attempting to fix the issue.
+Contributions are more than welcome. To learn more about, read the [Contributing guide](CONTRIBUTING.md).
 
 ## Credits
 My thanks go to my friends at [Uppa](https://www.uppa.it/).<br/>
