@@ -1,7 +1,7 @@
 # Contributing guide
 Thank you for investing your time in contributing to our project!<br/>
 <!-- Read our [Code of Conduct](./CODE_OF_CONDUCT.md) to keep our community approachable and respectable. -->
-In this guide you will get an overview of the contribution workflow from opening an issue, creating a PR, reviewing, and merging the PR.<br/>
+In this guide you will get an overview of the contribution workflow from opening an issue, creating a PR, reviewing and merging the PR.<br/>
 Use the table of contents icon on the top right corner of this document to get to a specific section of this guide quickly.
 
 ## New contributor guide
@@ -35,19 +35,19 @@ If you make a major change or fix a bug, add a related test.
 
 Unit and integration tests are built using [mocha](https://mochajs.org/) and 
 can be found in test folder.<br/>To run the test suite, please follow these steps:
-- get a valid [API key](https://shopify.dev/docs/api/admin-graphql#authentication) 
+1. get a valid [API key](https://shopify.dev/docs/api/admin-graphql#authentication) 
 for your shop
-- clone this repository:
+2. clone this repository:
   ```
   gh repo clone andvea/shopify-graphql-client
   cd shopify-graphql-client
   ```
-- create the env file `.env.test` in the main folder with these parameters:
+3. create the env file `.env.test` in the main folder with these parameters:
   ```
   SHOP_MYSHOPIFY_DOMAIN = test.myshopify.com (your myshopify domain)
   SHOP_API_KEY = shpca...b32 (your api key)
   ```
-- run ```npm test```
+4. run ```npm test```
 
 ## Commit your update
 Commit the changes once you are happy with them and all the automatic tests are successful.
