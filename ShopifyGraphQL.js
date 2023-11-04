@@ -210,15 +210,18 @@ export class ShopifyGraphQL {
         ) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
-          return reject(new Error(JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors[0].message, {
-            cause: {
-              status: HTTP_STREAM_RES.status,
-              errors: false,
-              userErrors: JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors,
-              cost: (JSON_RESULT.extensions ?
-                JSON_RESULT.extensions.cost :
-                null),
-            }}));
+          return reject(new Error(
+            JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors[0].message, {
+              cause: {
+                status: HTTP_STREAM_RES.status,
+                errors: false,
+                userErrors: JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors,
+                cost: (JSON_RESULT.extensions
+                  ? JSON_RESULT.extensions.cost
+                  : null),
+              }
+            }
+          ));
         }
 
         this._metrics.processing -= 1;
