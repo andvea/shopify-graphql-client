@@ -17,4 +17,4 @@ jobs:
     - run: npm install
     - name: Lint code
       run: npx eslint ShopifyGraphQL.js
-    - run: mocha
+    - run: npx mocha
