@@ -201,24 +201,27 @@ export class ShopifyGraphQL {
               .catch((r) => reject(r));
         }
         // Check response's userErrors body property
-        const JSON_RESULT_FIRST_KEY = Object.keys(JSON_RESULT.data)[0];
+        const JSON_RESULT_1ST_KEY = Object.keys(JSON_RESULT.data)[0];
         if (
-          typeof JSON_RESULT.data[JSON_RESULT_FIRST_KEY] === 'object' &&
-          JSON_RESULT.data[JSON_RESULT_FIRST_KEY] != null &&
-          JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors &&
-          JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors.length > 0
+          typeof JSON_RESULT.data[JSON_RESULT_1ST_KEY] === 'object' &&
+          JSON_RESULT.data[JSON_RESULT_1ST_KEY] != null &&
+          JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors &&
+          JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors.length > 0
         ) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
-          return reject(new Error(JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors[0].message, {
-            cause: {
-              status: HTTP_STREAM_RES.status,
-              errors: false,
-              userErrors: JSON_RESULT.data[JSON_RESULT_FIRST_KEY].userErrors,
-              cost: (JSON_RESULT.extensions ?
-                JSON_RESULT.extensions.cost :
-                null),
-            }}));
+          return reject(new Error(
+              JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors[0].message, {
+                cause: {
+                  status: HTTP_STREAM_RES.status,
+                  errors: false,
+                  userErrors: JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors,
+                  cost: (JSON_RESULT.extensions ?
+                    JSON_RESULT.extensions.cost :
+                    null),
+                },
+              },
+          ));
         }
 
         this._metrics.processing -= 1;
