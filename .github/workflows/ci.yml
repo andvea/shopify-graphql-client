@@ -17,8 +17,7 @@ jobs:
     - run: npm install
     - name: Lint code
       run: npx eslint ShopifyGraphQL.js
-    - name: Run tests
-        env:
-          SHOP_MYSHOPIFY_DOMAIN: ${{ secrets.SHOP_MYSHOPIFY_DOMAIN }}
-          SHOP_API_KEY: ${{ secrets.SHOP_API_KEY }}
-        run: npx mocha
+    - run: npx mocha
+      env:
+        SHOP_MYSHOPIFY_DOMAIN: ${{ secrets.SHOP_MYSHOPIFY_DOMAIN }}
+        SHOP_API_KEY: ${{ secrets.SHOP_API_KEY }}
