@@ -28,5 +28,8 @@
     "eslint-config-google": "^0.14.0",
     "mocha": "9.2.2",
     "supertest": "6.2.2"
+  },
+  "engines": {
+    "node": ">= 16.0.0"
   }
 }
