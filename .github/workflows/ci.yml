@@ -5,17 +5,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        node-version: [16.x, 18.x, 20.x, 21.x]
     steps:
-    - name: Run Matrix Jobs
-      run: |
-        for version in 16.x 18.x 20.x 21.x; do
-          echo "Running tests for Node.js $version"
-          nvm use $version
-
-          npm install
-          npx eslint ShopifyGraphQL.js
-          npx mocha
-        done
-    env:
-      SHOP_MYSHOPIFY_DOMAIN: ${{ secrets.SHOP_MYSHOPIFY_DOMAIN }}
-      SHOP_API_KEY: ${{ secrets.SHOP_API_KEY }}
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - name: Lint code
+      run: npx eslint ShopifyGraphQL.js
+    - run: npx mocha
+      env:
+        SHOP_MYSHOPIFY_DOMAIN: ${{ secrets.SHOP_MYSHOPIFY_DOMAIN }}
+        SHOP_API_KEY: ${{ secrets.SHOP_API_KEY }}
