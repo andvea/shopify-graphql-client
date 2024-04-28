@@ -25,7 +25,7 @@ export class ShopifyGraphQL {
     this.configObject = configObject;
     this.queue = new Queue();
     this._http2_session = null;
-    this.userAgent = 'shopify-graphql-client/1.1.0 '+
+    this.userAgent = 'shopify-graphql-client/1.1.1 '+
         '(+https://github.com/andvea/shopify-graphql-client)';
 
     if (!this.configObject.apiEndpoint) {
