@@ -139,6 +139,8 @@ export class ShopifyGraphQL {
         try {
           SHOPIFY_RESPONSE = JSON.parse(HTTP_STREAM_RES.body);
         } catch (parsingError) {
+          this._metrics.processing -= 1;
+          this._metrics.errors += 1;
           return reject(new Error('An error occurred while parsing JSON', {
             cause: {
               status: HTTP_STREAM_RES.status,
