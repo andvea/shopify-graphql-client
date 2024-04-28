@@ -139,28 +139,27 @@ export class ShopifyGraphQL {
         try {
           SHOPIFY_RESPONSE = JSON.parse(HTTP_STREAM_RES.body);
         } catch (parsingError) {
-          return reject(new Error('An error occurred while parsing Shopify\'s response', {
+          return reject(new Error('An error occurred while parsing JSON', {
             cause: {
               status: HTTP_STREAM_RES.status,
               rawResponse: HTTP_STREAM_RES.body,
               errors: null,
               userErrors: false,
-              cost: null
+              cost: null,
             }}));
         }
         // Check response's HTTP status code
         if (HTTP_STREAM_RES.status < 200 || HTTP_STREAM_RES.status > 299) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
-          return reject(new Error('Shopify returned '+HTTP_STREAM_RES.status+
-            ' as response code. Please see https://shopify.dev/docs/api/usage/response-codes', {
+          return reject(new Error('Received a non 2xx response code', {
             cause: {
               status: HTTP_STREAM_RES.status,
               errors: SHOPIFY_RESPONSE.errors,
               userErrors: false,
               cost: (SHOPIFY_RESPONSE.extensions ?
                 SHOPIFY_RESPONSE.extensions.cost :
-                null)
+                null),
             }}));
         }
         // Check response's errors body property
@@ -213,21 +212,21 @@ export class ShopifyGraphQL {
               .catch((r) => reject(r));
         }
         // Check response's userErrors body property
-        const FIRST_SHOPIFY_RESP_KEY = Object.keys(SHOPIFY_RESPONSE.data)[0];
+        const RESPONSE_KEY1 = Object.keys(SHOPIFY_RESPONSE.data)[0];
         if (
-          typeof SHOPIFY_RESPONSE.data[FIRST_SHOPIFY_RESP_KEY] === 'object' &&
-          SHOPIFY_RESPONSE.data[FIRST_SHOPIFY_RESP_KEY] != null &&
-          SHOPIFY_RESPONSE.data[FIRST_SHOPIFY_RESP_KEY].userErrors &&
-          SHOPIFY_RESPONSE.data[FIRST_SHOPIFY_RESP_KEY].userErrors.length > 0
+          typeof SHOPIFY_RESPONSE.data[RESPONSE_KEY1] === 'object' &&
+          SHOPIFY_RESPONSE.data[RESPONSE_KEY1] != null &&
+          SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors &&
+          SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors.length > 0
         ) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
           return reject(new Error(
-              SHOPIFY_RESPONSE.data[FIRST_SHOPIFY_RESP_KEY].userErrors[0].message, {
+              SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors[0].message, {
                 cause: {
                   status: HTTP_STREAM_RES.status,
                   errors: false,
-                  userErrors: SHOPIFY_RESPONSE.data[FIRST_SHOPIFY_RESP_KEY].userErrors,
+                  userErrors: SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors,
                   cost: (SHOPIFY_RESPONSE.extensions ?
                     SHOPIFY_RESPONSE.extensions.cost :
                     null),
