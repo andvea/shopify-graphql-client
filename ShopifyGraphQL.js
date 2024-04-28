@@ -135,30 +135,43 @@ export class ShopifyGraphQL {
       });
 
       HTTP_STREAM.on('end', async () => {
-        // Parse response's body
-        const JSON_RESULT = JSON.parse(HTTP_STREAM_RES.body);
+        let SHOPIFY_RESPONSE = undefined;
+        try {
+          SHOPIFY_RESPONSE = JSON.parse(HTTP_STREAM_RES.body);
+        } catch (parsingError) {
+          this._metrics.processing -= 1;
+          this._metrics.errors += 1;
+          return reject(new Error('An error occurred while parsing JSON', {
+            cause: {
+              status: HTTP_STREAM_RES.status,
+              rawResponse: HTTP_STREAM_RES.body,
+              errors: null,
+              userErrors: false,
+              cost: null,
+            }}));
+        }
         // Check response's HTTP status code
         if (HTTP_STREAM_RES.status < 200 || HTTP_STREAM_RES.status > 299) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
-          return reject(new Error('Shopify returned '+HTTP_STREAM_RES.status+
-            ' as response code. Please see https://shopify.dev/docs/api/usage/response-codes', {
+          return reject(new Error('Received a non 2xx response code', {
             cause: {
               status: HTTP_STREAM_RES.status,
-              errors: JSON_RESULT.errors,
+              errors: SHOPIFY_RESPONSE.errors,
               userErrors: false,
-              cost: (JSON_RESULT.extensions ?
-                JSON_RESULT.extensions.cost :
-                null)}}));
+              cost: (SHOPIFY_RESPONSE.extensions ?
+                SHOPIFY_RESPONSE.extensions.cost :
+                null),
+            }}));
         }
         // Check response's errors body property
-        if (JSON_RESULT.errors!=undefined) {
+        if (SHOPIFY_RESPONSE.errors!=undefined) {
           let isThrottled = false;
-          for (let i=0; i<JSON_RESULT.errors.length; i++) {
+          for (let i=0; i<SHOPIFY_RESPONSE.errors.length; i++) {
             if (
-              JSON_RESULT.errors[i].extensions &&
-              JSON_RESULT.errors[i].extensions.code &&
-              JSON_RESULT.errors[i].extensions.code == 'THROTTLED') {
+              SHOPIFY_RESPONSE.errors[i].extensions &&
+              SHOPIFY_RESPONSE.errors[i].extensions.code &&
+              SHOPIFY_RESPONSE.errors[i].extensions.code == 'THROTTLED') {
               isThrottled = true;
             }
           }
@@ -174,19 +187,19 @@ export class ShopifyGraphQL {
             (isThrottled && !this.configObject.retryThrottles)
           ) {
             this._metrics.processing -= 1;
-            return reject(new Error(JSON_RESULT.errors[0].message, {
+            return reject(new Error(SHOPIFY_RESPONSE.errors[0].message, {
               cause: {
                 status: (isThrottled ? 'throttled' : HTTP_STREAM_RES.status),
-                errors: JSON_RESULT.errors,
+                errors: SHOPIFY_RESPONSE.errors,
                 userErrors: false,
-                cost: (JSON_RESULT.extensions ?
-                  JSON_RESULT.extensions.cost :
+                cost: (SHOPIFY_RESPONSE.extensions ?
+                  SHOPIFY_RESPONSE.extensions.cost :
                   null),
               }}));
           }
           // How long must I wait?
           // (actualQueryCost is null for throttled requests)
-          const QUERY_COST = JSON_RESULT.extensions.cost;
+          const QUERY_COST = SHOPIFY_RESPONSE.extensions.cost;
           const BACKOFF_MS =
             Math.max(0,
                 (QUERY_COST.requestedQueryCost -
@@ -201,23 +214,23 @@ export class ShopifyGraphQL {
               .catch((r) => reject(r));
         }
         // Check response's userErrors body property
-        const JSON_RESULT_1ST_KEY = Object.keys(JSON_RESULT.data)[0];
+        const RESPONSE_KEY1 = Object.keys(SHOPIFY_RESPONSE.data)[0];
         if (
-          typeof JSON_RESULT.data[JSON_RESULT_1ST_KEY] === 'object' &&
-          JSON_RESULT.data[JSON_RESULT_1ST_KEY] != null &&
-          JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors &&
-          JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors.length > 0
+          typeof SHOPIFY_RESPONSE.data[RESPONSE_KEY1] === 'object' &&
+          SHOPIFY_RESPONSE.data[RESPONSE_KEY1] != null &&
+          SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors &&
+          SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors.length > 0
         ) {
           this._metrics.processing -= 1;
           this._metrics.errors += 1;
           return reject(new Error(
-              JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors[0].message, {
+              SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors[0].message, {
                 cause: {
                   status: HTTP_STREAM_RES.status,
                   errors: false,
-                  userErrors: JSON_RESULT.data[JSON_RESULT_1ST_KEY].userErrors,
-                  cost: (JSON_RESULT.extensions ?
-                    JSON_RESULT.extensions.cost :
+                  userErrors: SHOPIFY_RESPONSE.data[RESPONSE_KEY1].userErrors,
+                  cost: (SHOPIFY_RESPONSE.extensions ?
+                    SHOPIFY_RESPONSE.extensions.cost :
                     null),
                 },
               },
@@ -226,7 +239,7 @@ export class ShopifyGraphQL {
 
         this._metrics.processing -= 1;
         this._metrics.success += 1;
-        return resolve(JSON_RESULT);
+        return resolve(SHOPIFY_RESPONSE);
       });
     });
   }
