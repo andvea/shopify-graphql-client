@@ -88,7 +88,7 @@ describe('GraphQL Errors', function() {
 
   it('At least one request throttled', (done) => {
     var throttlingPromises = [];
-    for (var i=0; i<100; i++) {
+    for (var i=0; i<500; i++) {
       throttlingPromises.push(
         shopifyGraphQL.request(`{ 
           shop{ 
