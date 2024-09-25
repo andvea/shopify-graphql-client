@@ -10,7 +10,7 @@ dotenv.config({
 var shopifyGraphQL =
   new ShopifyGraphQL({
     timeout: 2,
-    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2024-07/graphql.json',
     apiKey: process.env.SHOP_API_KEY,
     retryThrottles: false,
     maxConcurrentRequests: 50
@@ -37,6 +37,48 @@ describe('GraphQL Errors', function() {
         id 
       } 
     }`).then((v) => {
+      done();
+    }).catch((reqErr) => {
+      done(new Error(reqErr));
+    });
+  });
+
+  it('Succesfull request with variables', (done) => {
+    let QUERY = `mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+        productVariants {
+          id
+          media(first: 10) {
+            nodes {
+              id
+            }
+          }
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }`;
+
+    let VARIABLES = {
+      productId: "gid://shopify/Product/6658141683841",
+      variants: [
+        {
+          id: "gid://shopify/ProductVariant/39674648395905",
+          price: "21.00"
+        },
+        {
+          id: "gid://shopify/ProductVariant/39674648494209",
+          price: "22.00"
+        }
+      ]
+    };
+
+    shopifyGraphQL.request(JSON.stringify({
+        query: QUERY,
+        variables: VARIABLES
+      }), 'application/json').then((v) => {
       done();
     }).catch((reqErr) => {
       done(new Error(reqErr));

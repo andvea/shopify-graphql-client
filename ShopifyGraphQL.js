@@ -25,7 +25,7 @@ export class ShopifyGraphQL {
     this.configObject = configObject;
     this.queue = new Queue();
     this._http2_session = null;
-    this.userAgent = 'shopify-graphql-client/1.1.1 '+
+    this.userAgent = 'shopify-graphql-client/1.1.2 '+
         '(+https://github.com/andvea/shopify-graphql-client)';
 
     if (!this.configObject.apiEndpoint) {
@@ -61,11 +61,11 @@ export class ShopifyGraphQL {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  request(body, retries = 0) {
+  request(body, contentType) {
     return new Promise(async (resolve, reject) => {
       this._metrics.total += 1;
       if (this._metrics.processing < this.configObject.maxConcurrentRequests) {
-        return this._executeRequest(body)
+        return this._executeRequest(body, contentType)
             .then((s) => resolve(s))
             .catch((r) => reject(r))
             .finally((f) => {
@@ -84,7 +84,7 @@ export class ShopifyGraphQL {
             this.queue.peek() == REQ_QUEUE_ID
           ) {
             this.queue.dequeue();
-            return await this._executeRequest(body)
+            return await this._executeRequest(body, contentType)
                 .then((s) => resolve(s))
                 .catch((r) => reject(r))
                 .finally((f) => {
@@ -99,7 +99,7 @@ export class ShopifyGraphQL {
     });
   }
 
-  _executeRequest(body) {
+  _executeRequest(body, contentType = 'application/graphql') {
     return new Promise((resolve, reject) => {
       this._metrics.processing += 1;
 
@@ -112,7 +112,7 @@ export class ShopifyGraphQL {
         ':path': this.configObject.apiEndpoint.pathname,
         ':method': 'POST',
         'Accept': 'text/html',
-        'Content-Type': 'application/graphql',
+        'Content-Type': contentType,
         'User-Agent': this.userAgent,
         'X-Shopify-Access-Token': this.configObject.apiKey,
       });
@@ -209,7 +209,7 @@ export class ShopifyGraphQL {
           await this._syncDelay(BACKOFF_MS);
           this._metrics.processing -= 1;
           // ..and retry the request!
-          return this._executeRequest(body)
+          return this._executeRequest(body, contentType)
               .then((s) => resolve(s))
               .catch((r) => reject(r));
         }
