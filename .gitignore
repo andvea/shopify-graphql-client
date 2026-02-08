@@ -1,2 +1,4 @@
 /node_modules/
 .env.test
+.DS_Store
+/test/.DS_Store

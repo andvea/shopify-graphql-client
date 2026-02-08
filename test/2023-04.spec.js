@@ -7,16 +7,18 @@ dotenv.config({
   path: './.env.test'
 });
 
+const SHOPIFY_API_VERSION = '2023-04';
+
 var shopifyGraphQL =
   new ShopifyGraphQL({
     timeout: 2,
-    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/'+SHOPIFY_API_VERSION+'/graphql.json',
     apiKey: process.env.SHOP_API_KEY,
     retryThrottles: false,
     maxConcurrentRequests: 50
   });
 
-describe('GraphQL Errors', function() {
+describe('['+SHOPIFY_API_VERSION+'] GraphQL Errors', function() {
   this.timeout(55000);
 
   it('User-Agent version equal to package.json', (done) => {
@@ -88,17 +90,26 @@ describe('GraphQL Errors', function() {
 
   it('At least one request throttled', (done) => {
     var throttlingPromises = [];
-    for (var i=0; i<500; i++) {
+    for (var i=0; i<1000; i++) {
       throttlingPromises.push(
         shopifyGraphQL.request(`{ 
-          shop{ 
+          shop{
             myshopifyDomain 
+            name
+            currencyCode
+            checkoutApiSupported
+            taxesIncluded
             alerts{ action{ title } } 
-            currencySettings(first:10){ edges{ node{ currencyName } } } 
-            storefrontAccessTokens(first:10){ edges{ node { createdAt } } } 
-            privateMetafields(first:10){ edges{ node{ id } } } 
-            metafields(first:10){ edges{ node{ id } } } 
-          } 
+            metafields(first:50){ edges{ node{ id namespace key value }}}
+            collections(first: 50){ edges{ node{ id title description }}}
+            products(first: 50){ edges{ node{ id title description }}}
+            orders(first: 50){ edges{ node{ id createdAt name sourceName }}}
+            productVariants(first: 50){ edges{ node{ id displayName price }}}
+            customers(first: 50){ edges{ node{ id createdAt }}}
+            allProductCategoriesList{ id ancestorIds childrenIds name }
+            currencySettings(first:50){ edges{ node{ currencyName } } } 
+            storefrontAccessTokens(first:50){ edges{ node { createdAt } } }
+          }
         }`));
     }
 
@@ -117,7 +128,7 @@ describe('GraphQL Errors', function() {
     shopifyGraphQL =
       new ShopifyGraphQL({
         timeout: 2,
-        apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+        apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/'+SHOPIFY_API_VERSION+'/graphql.json',
         apiKey: process.env.SHOP_API_KEY,
         maxConcurrentRequests: 5,
         retryThrottles: true
@@ -129,11 +140,20 @@ describe('GraphQL Errors', function() {
         shopifyGraphQL.request(`{ 
           shop{ 
             myshopifyDomain 
+            name
+            currencyCode
+            checkoutApiSupported
+            taxesIncluded
             alerts{ action{ title } } 
-            currencySettings(first:10){ edges{ node{ currencyName } } } 
-            storefrontAccessTokens(first:10){ edges{ node { createdAt } } } 
-            privateMetafields(first:10){ edges{ node{ id } } } 
-            metafields(first:10){ edges{ node{ id } } } 
+            metafields(first:50){ edges{ node{ id namespace key value }}}
+            collections(first: 50){ edges{ node{ id title description }}}
+            products(first: 50){ edges{ node{ id title description }}}
+            orders(first: 50){ edges{ node{ id createdAt name sourceName }}}
+            productVariants(first: 50){ edges{ node{ id displayName price }}}
+            customers(first: 50){ edges{ node{ id createdAt }}}
+            allProductCategoriesList{ id ancestorIds childrenIds name }
+            currencySettings(first:50){ edges{ node{ currencyName } } } 
+            storefrontAccessTokens(first:50){ edges{ node { createdAt } } }
           } 
         }`));
     }

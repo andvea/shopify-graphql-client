@@ -6,9 +6,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       matrix:
-        node-version: [16.x, 18.x, 20.x, 21.x]
+        node-version: [16.x, 18.x, 20.x, 21.x, 23.x, 25.x]
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
