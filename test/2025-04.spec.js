@@ -7,16 +7,18 @@ dotenv.config({
   path: './.env.test'
 });
 
+const SHOPIFY_API_VERSION = '2025-04';
+
 var shopifyGraphQL =
   new ShopifyGraphQL({
     timeout: 2,
-    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+    apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/'+SHOPIFY_API_VERSION+'/graphql.json',
     apiKey: process.env.SHOP_API_KEY,
     retryThrottles: false,
     maxConcurrentRequests: 50
   });
 
-describe('GraphQL Errors', function() {
+describe('['+SHOPIFY_API_VERSION+'] GraphQL Errors', function() {
   this.timeout(55000);
 
   it('User-Agent version equal to package.json', (done) => {
@@ -32,11 +34,13 @@ describe('GraphQL Errors', function() {
   });
 
   it('Succesfull request', (done) => {
-    shopifyGraphQL.request(`{ 
-      shop { 
-        id 
-      } 
-    }`).then((v) => {
+    shopifyGraphQL.request(JSON.stringify({
+      query: `{ 
+        shop { 
+          id 
+        } 
+      }`
+    })).then((v) => {
       done();
     }).catch((reqErr) => {
       done(new Error(reqErr));
@@ -52,11 +56,13 @@ describe('GraphQL Errors', function() {
   });
 
   it('Reject if response has errors', (done) => {
-    shopifyGraphQL.request(`{ 
-      _customer(id: "gid://shopify/Customer/xxx") { 
-        createdAt 
-      } 
-    }`).then((v) => {
+    shopifyGraphQL.request(JSON.stringify({
+      query: `{ 
+        _customer(id: "gid://shopify/Customer/xxx") { 
+          createdAt 
+        } 
+      }`
+    })).then((v) => {
       done(new Error('Malformed body passed'));
     }).catch((err) => {
       if (!err.cause.userErrors && err.cause.errors) {
@@ -68,19 +74,23 @@ describe('GraphQL Errors', function() {
   });
 
   it('Reject if response has userErrors', (done) => {
-    shopifyGraphQL.request(`mutation { 
-      webhookSubscriptionDelete(id: "gid://shopify/WebhookSubscription/xxx") { 
-        userErrors { 
-          field 
-          message 
+    shopifyGraphQL.request(JSON.stringify({
+      query: `mutation webhookSubscriptionDelete($id: ID!) {
+        webhookSubscriptionDelete(id: $id) { 
+          userErrors { 
+            field 
+            message 
+          } 
         } 
-      } 
-    }`).then((v) => {
+      }`,
+      variables: {id: 'gid://shopify/WebhookSubscription/xxx'}
+    })).then((v) => {
       done(new Error('Malformed mutation input passed'));
     }).catch((err) => {
       if (err.cause.userErrors && !err.cause.errors) {
         done();
       } else {
+        console.log(err);
         done(new Error('userErrors param is not defined'));
       }
     });
@@ -88,18 +98,19 @@ describe('GraphQL Errors', function() {
 
   it('At least one request throttled', (done) => {
     var throttlingPromises = [];
-    for (var i=0; i<500; i++) {
+    for (var i=0; i<5000; i++) {
       throttlingPromises.push(
-        shopifyGraphQL.request(`{ 
-          shop{ 
-            myshopifyDomain 
-            alerts{ action{ title } } 
-            currencySettings(first:10){ edges{ node{ currencyName } } } 
-            storefrontAccessTokens(first:10){ edges{ node { createdAt } } } 
-            privateMetafields(first:10){ edges{ node{ id } } } 
-            metafields(first:10){ edges{ node{ id } } } 
-          } 
-        }`));
+        shopifyGraphQL.request(JSON.stringify({
+          query: `{ 
+            shop{ 
+              myshopifyDomain 
+              alerts{ action{ title } } 
+              currencySettings(first:10){ edges{ node{ currencyName } } } 
+              storefrontAccessTokens(first:10){ edges{ node { createdAt } } } 
+              metafields(first:10){ edges{ node{ id } } } 
+            } 
+          }`
+        })));
     }
 
     Promise.all(throttlingPromises).then((success) => {
@@ -117,7 +128,7 @@ describe('GraphQL Errors', function() {
     shopifyGraphQL =
       new ShopifyGraphQL({
         timeout: 2,
-        apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/2023-04/graphql.json',
+        apiEndpoint: 'https://'+process.env.SHOP_MYSHOPIFY_DOMAIN+'/admin/api/'+SHOPIFY_API_VERSION+'/graphql.json',
         apiKey: process.env.SHOP_API_KEY,
         maxConcurrentRequests: 5,
         retryThrottles: true
@@ -126,16 +137,17 @@ describe('GraphQL Errors', function() {
     var throttlingPromises = [];
     for (var i=0; i<70; i++) {
       throttlingPromises.push(
-        shopifyGraphQL.request(`{ 
-          shop{ 
-            myshopifyDomain 
-            alerts{ action{ title } } 
-            currencySettings(first:10){ edges{ node{ currencyName } } } 
-            storefrontAccessTokens(first:10){ edges{ node { createdAt } } } 
-            privateMetafields(first:10){ edges{ node{ id } } } 
-            metafields(first:10){ edges{ node{ id } } } 
-          } 
-        }`));
+        shopifyGraphQL.request(JSON.stringify({
+          query:`{ 
+            shop{ 
+              myshopifyDomain 
+              alerts{ action{ title } } 
+              currencySettings(first:10){ edges{ node{ currencyName } } } 
+              storefrontAccessTokens(first:10){ edges{ node { createdAt } } } 
+              metafields(first:10){ edges{ node{ id } } } 
+            } 
+          }`
+        })));
     }
 
     Promise.all(throttlingPromises).then((success) => {

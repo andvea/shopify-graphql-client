@@ -25,13 +25,18 @@ export class ShopifyGraphQL {
     this.configObject = configObject;
     this.queue = new Queue();
     this._http2_session = null;
-    this.userAgent = 'shopify-graphql-client/1.1.1 '+
+    this.userAgent = 'shopify-graphql-client/1.1.2 '+
         '(+https://github.com/andvea/shopify-graphql-client)';
 
     if (!this.configObject.apiEndpoint) {
       throw new Error('Missing Shop URL');
     } else {
       this.configObject.apiEndpoint = new URL(this.configObject.apiEndpoint);
+      this.configObject.apiVersion =
+        this.configObject.apiEndpoint.pathname
+            .split('/admin/api/')
+            .pop()
+            .split('/graphql.json')[0];
     }
 
     if (!this.configObject.apiKey) {
@@ -111,8 +116,11 @@ export class ShopifyGraphQL {
       const HTTP_STREAM = this._http2_session.request({
         ':path': this.configObject.apiEndpoint.pathname,
         ':method': 'POST',
-        'Accept': 'text/html',
-        'Content-Type': 'application/graphql',
+        'Accept': '*/*',
+        'Content-Type':
+            (parseInt(this.configObject.apiVersion.split('-')[0]) > 2024 ?
+              'application/json' :
+              'application/graphql'),
         'User-Agent': this.userAgent,
         'X-Shopify-Access-Token': this.configObject.apiKey,
       });
