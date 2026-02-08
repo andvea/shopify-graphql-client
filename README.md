@@ -44,7 +44,39 @@ npm install @andvea/shopify-graphql-client --save
 ```
 
 ## Usage
-This is a basic example of using the library:
+This is a basic example showing how to use the library with Shopify API 2025 and later:
+```javascript
+import {ShopifyGraphQL} from '@andvea/shopify-graphql-client';
+
+var shopifyGraphQL =
+  new ShopifyGraphQL({
+    apiEndpoint: 'https://test.myshopify.com/admin/api/2026-01/graphql.json',
+    apiKey: 'shpca...b32',
+    retryThrottles: true,
+    maxConcurrentRequests: 5
+  });
+
+try {
+  var shopifyResponse = 
+    await shopifyGraphQL.request(JSON.stringify({
+      query: `mutation webhookSubscriptionDelete($id: ID!) {
+        webhookSubscriptionDelete(id: $id) { 
+          userErrors { 
+            field 
+            message 
+          } 
+        } 
+      }`,
+      variables: {id: 'gid://shopify/WebhookSubscription/xxx'}
+    }));
+    
+  console.log(shopifyResponse);
+} catch(reqErr) {
+  console.log('Something went wrong!');
+  console.log(reqErr);
+}
+```
+To use API versions before 2025, do the following:
 ```javascript
 import {ShopifyGraphQL} from '@andvea/shopify-graphql-client';
 
@@ -72,7 +104,7 @@ try {
 ```
 
 ### Parameters
-- `apiEndpoint`: full API endpoint, eg `https://test.myshopify.com/admin/api/2023-04/graphql.json`
+- `apiEndpoint`: full API endpoint, eg `https://test.myshopify.com/admin/api/2026-01/graphql.json`
 - `apiKey`: the shop's API key
 - `retryThrottles`: whether throttled requests should be automatically retried
 - `maxConcurrentRequests`: how many requests can be sent at the same time. 
